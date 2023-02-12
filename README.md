@@ -8,9 +8,5 @@
 # RN
 
 - [X] The transaction can be of credit (will sum to the balance), or debit type (will subtract the balance);
-- [ ] Must be possible to identify the user between the requests;
-- [ ] The user will only be able to see the transactions that he has created;
-
-# RNF
-
-- [ ] 
+- [X] Must be possible to identify the user between the requests;
+- [X] The user will only be able to see the transactions that he has created;
