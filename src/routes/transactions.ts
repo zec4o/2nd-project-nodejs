@@ -17,6 +17,10 @@ export async function transactionsRoutes(app: FastifyInstance) {
         .where('session_id', sessionId)
         .select('*')
 
+      if (transactions.length === 0) {
+        return reply.status(404).send('You have no transactions.')
+      }
+
       return { transactions }
     },
   )
@@ -26,7 +30,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
     {
       preHandler: [checkSessionIdExists],
     },
-    async (request) => {
+    async (request, reply) => {
       const { sessionId } = request.cookies
 
       const getTransactionParamsSchema = z.object({
@@ -41,6 +45,14 @@ export async function transactionsRoutes(app: FastifyInstance) {
         })
         .first()
 
+      if (!transaction) {
+        return reply
+          .status(404)
+          .send(
+            'This transaction not exists or you do not have permissions to access it. ',
+          )
+      }
+
       return { transaction }
     },
   )
@@ -50,7 +62,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
     {
       preHandler: [checkSessionIdExists],
     },
-    async (request) => {
+    async (request, reply) => {
       const { sessionId } = request.cookies
 
       const summary = await knex('transactions')
@@ -92,4 +104,27 @@ export async function transactionsRoutes(app: FastifyInstance) {
 
     return reply.status(201).send()
   })
+
+  app.delete(
+    '/:id',
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const { sessionId } = request.cookies
+
+      const getTransactionParamsSchema = z.object({
+        id: z.string().uuid(),
+      })
+
+      const { id } = getTransactionParamsSchema.parse(request.params)
+
+      await knex('transactions').delete('*').where({
+        session_id: sessionId,
+        id,
+      })
+
+      return reply.status(204).send('Deleted.')
+    },
+  )
 }
